@@ -3,7 +3,7 @@ var configFile = process.argv[2];
 var port = parseInt(process.argv[3], 10);
 
 if (!configFile || !port) {
-    console.error('Usage: server [routes.json] [port]');
+    console.error('Usage: proxer [routes.json] [port]');
     process.exit(1);
 }
 
