@@ -11,4 +11,4 @@ var config = JSON.parse(fs.readFileSync(configFile));
 
 var proxer = require('../');
 
-var server = proxer(config.routes).listen(config.port);
+var server = proxer(config.routes, config.handlers).listen(config.port);

@@ -2,11 +2,14 @@ var bouncy = require('bouncy');
 var fcgi = require('fcgi');
 var url = require('url');
 var path = require('path');
+var minimatch = require('minimatch');
 
-module.exports = function createProxerServer(routes) {
+module.exports = function createProxerServer(routes, handlers) {
+
     return bouncy(function (req, res, bounce) {
         var host = (req.headers.host || '').replace(/:\d+$/, '');
         var route = routes[host] || routes['*'];
+        var reqUrl = url.parse(req.url);
         
         if (Array.isArray(route)) {
             // jump to a random route on arrays
@@ -31,19 +34,40 @@ module.exports = function createProxerServer(routes) {
             route = { handler: route };
         }
 
+        if (route.pathRoutes) {
+            for (var r in route.pathRoutes) {
+                if (route.pathRoutes[r].glob && minimatch(reqUrl.pathname, route.pathRoutes[r].glob)) {
+                    route = mergeRoute(route, route.pathRoutes[r]);
+                    break;
+                }
+            }
+        }
+
+        if (!route.handler) {
+            return onerror("No handler found");
+        }
+
         var u = url.parse(route.handler);
         if (u.protocol == 'http:' || u.protocol == 'https:') {
+            handleBounce();
+        } else if (u.protocol == 'fastcgi:') {
+            handleFastCGI();
+        } else {
+            onerror("No handler found");
+        }
+
+        function handleBounce() {
             var b = bounce(u.hostname, u.port ? u.port : u.protocol == 'https' ? 443 : 80);
             b.on('error', onerror);
-        } else if (u.protocol == 'fastcgi:') {
-            fcgi.connect(u.path ? { path: u.path, root: __dirname + '/..' } : {host: u.hostname, port: u.port , root: __dirname + '/..'}, function(err, f) {
+        }
+
+        function handleFastCGI() {
+            fcgi.connect(u.path ? { path: u.path } : {host: u.hostname, port: u.port }, function(err, f) {
                 if (err) {
                     res.statusCode = 500;
                     res.setHeader('content-type', 'text/plain');
                     return res.end('Connection failed\r\n');
                 }
-
-                var reqUrl = url.parse(req.url);
 
                 f.handle(req, res, {
                     env: {
@@ -52,6 +76,19 @@ module.exports = function createProxerServer(routes) {
                     }
                 });
             });
+        }
+
+        function mergeRoute(route, n) {
+            route = Object.create(route);
+            for (var i in n) {
+                if (i == 'use') {
+                    route.handler = handlers[n.use];
+                } else {
+                    route[i] = n[i];
+                }
+            }
+
+            return route;
         }
     });
 };
