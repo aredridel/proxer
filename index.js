@@ -3,8 +3,11 @@ var fcgi = require('fcgi');
 var url = require('url');
 var path = require('path');
 var minimatch = require('minimatch');
+var Static = require('node-static');
 
 module.exports = function createProxerServer(routes, handlers) {
+
+    var statics = {};
 
     return bouncy(function (req, res, bounce) {
         var host = (req.headers.host || '').replace(/:\d+$/, '');
@@ -52,6 +55,8 @@ module.exports = function createProxerServer(routes, handlers) {
             handleBounce();
         } else if (u.protocol == 'fastcgi:') {
             handleFastCGI();
+        } else if (route.handler == 'static') {
+            handleStatic();
         } else {
             onerror("No handler found");
         }
@@ -76,6 +81,14 @@ module.exports = function createProxerServer(routes, handlers) {
                     }
                 });
             });
+        }
+
+        function handleStatic() {
+            if (!statics[route.root]) {
+                statics[route.root] = new Static.Server(route.root);
+            }
+
+            statics[route.root].serve(req, res);
         }
 
         function mergeRoute(route, n) {
