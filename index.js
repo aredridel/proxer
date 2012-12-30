@@ -21,9 +21,16 @@ module.exports = function createProxerServer(routes, handlers) {
         
         req.on('error', onerror);
         function onerror (err) {
-            res.statusCode = 500;
-            res.setHeader('content-type', 'text/plain');
-            res.end(String(err) + '\r\n');
+            if (err) {
+                res.setHeader('content-type', 'text/plain');
+                if (err.status) {
+                    res.statusCode = err.status;
+                } else {
+                    res.statusCode = 500;
+                }
+                console.log(err);
+                res.end(String(err.message ? err.message : err) + '\r\n');
+            }
         }
 
         if (!route) {
@@ -88,7 +95,7 @@ module.exports = function createProxerServer(routes, handlers) {
                 statics[route.root] = new Static.Server(route.root);
             }
 
-            statics[route.root].serve(req, res);
+            statics[route.root].serve(req, res, onerror);
         }
 
         function mergeRoute(route, n) {

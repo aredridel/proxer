@@ -7,9 +7,12 @@ Features
 --------
 
 * Simple json configuration
+* Static file server
+* FastCGI and HTTP Proxy support
 
 Coming features
 ---------------
 
 * Dynamic configuration through a simple REST interface
-* Static file serving
+* Rewrite to use 'send' instead of 'node-static'
+
