@@ -14,5 +14,4 @@ Coming features
 ---------------
 
 * Dynamic configuration through a simple REST interface
-* Rewrite to use 'send' instead of 'node-static'
-
+* Rework the configuration structure to reflect the manifesto better

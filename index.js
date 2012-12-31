@@ -3,7 +3,7 @@ var fcgi = require('fcgi');
 var url = require('url');
 var path = require('path');
 var minimatch = require('minimatch');
-var Static = require('node-static');
+var send = require('send');
 
 module.exports = function createProxerServer(routes, handlers) {
 
@@ -23,11 +23,7 @@ module.exports = function createProxerServer(routes, handlers) {
         function onerror (err) {
             if (err) {
                 res.setHeader('content-type', 'text/plain');
-                if (err.status) {
-                    res.statusCode = err.status;
-                } else {
-                    res.statusCode = 500;
-                }
+                res.statusCode = 500;
                 console.log(err);
                 res.end(String(err.message ? err.message : err) + '\r\n');
             }
@@ -91,11 +87,7 @@ module.exports = function createProxerServer(routes, handlers) {
         }
 
         function handleStatic() {
-            if (!statics[route.root]) {
-                statics[route.root] = new Static.Server(route.root);
-            }
-
-            statics[route.root].serve(req, res, onerror);
+            send(req, req.url).root(route.root).index(route.index ? route.index : 'index.html').on('error', onerror).pipe(res);
         }
 
         function mergeRoute(route, n) {
