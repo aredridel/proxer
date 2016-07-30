@@ -13,9 +13,9 @@
   "author": "Aria Stewart <aredridel@nbtsc.org>",
   "license": "BSD",
   "dependencies": {
-    "bouncy": "~2.0.3",
+    "bouncy": "~3.2.2",
     "fcgi-handler": "~0.1.4",
-    "send": "~0.1.0",
-    "minimatch": "~0.2.9"
+    "send": "~0.14.1",
+    "minimatch": "~3.0.2"
   }
 }
