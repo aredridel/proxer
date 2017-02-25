@@ -15,7 +15,7 @@
   "dependencies": {
     "bouncy": "~3.2.2",
     "fcgi-handler": "~0.1.4",
-    "send": "~0.14.1",
+    "send": "~0.15.0",
     "minimatch": "~3.0.2"
   }
 }
